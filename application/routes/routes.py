@@ -4,6 +4,31 @@ import json
 from ..models import Motor as Motr, Driver as Drivr, Team as Tm
 from setup import db
 
+def makeData(items, single = False):
+    
+    data = {}
+
+    if not single:
+        
+        for item in items:
+            data[item.id] = {}
+            
+            for column in item.__table__.columns.keys():
+                data[item.id][column] = getattr(item, column)
+
+
+        return data
+    
+    else:
+    
+        data[items.id] = {}
+        
+        for column in items.__table__.columns.keys():
+            data[items.id][column] = getattr(items, column)
+
+        return data
+
+
 class Motor(fr.Resource):
     def get(self):
         items = Motr.Motor.query.all()
@@ -24,17 +49,27 @@ class Motor(fr.Resource):
         data = json.dumps({"id" : motor.id})
         return Response(data, status = 201)
 
+
+
 class Team(fr.Resource):
-    
-    def get(self):
-        items = Tm.Team.query.all()
-        data = {}
 
-        for item in items:
-            
-            data[item.id] = {"name": item.name}
+    def get(self, id=None):
+        
+        if not id:
 
-        return data
+            items = Tm.Team.query.all()
+            data = {}
+            print(request)
+            for item in items:
+                
+                data[item.id] = {"name": item.name}
+
+            return data
+        
+        else:
+            team = Tm.Team.query.filter_by(id=id).first()
+
+            return {team.id: team.name}
 
     def post(self):
         motor = Motr.Motor.query.filter_by(name=request.json['motor']).first()
@@ -49,3 +84,47 @@ class Team(fr.Resource):
         data = json.dumps({"id" : team.id})
         return Response(data, status = 201)
 
+
+
+class Driver(fr.Resource):
+
+    def get(self, id = None):
+        
+        if not id:
+        
+            drivers = Drivr.Driver.query.all()
+            
+            data = makeData(drivers)
+
+            return data
+        
+        else:
+
+            driver = Drivr.Driver.query.filter_by(id=id).first()
+
+            data = makeData(driver, True)
+
+            return data
+
+    def post(self):
+        team = Tm.Team.query.filter_by(name=request.json['team']).first()
+
+        driver = Drivr.Driver(name = request.json['name'],
+                                team = team)
+
+        db.session.add(driver)
+        db.session.commit()
+
+        data = json.dumps({"id" : driver.id})
+        return Response(data, status = 201)
+
+    def patch(self, id):
+
+        driver = Drivr.Driver.query.filter_by(id=id).first()
+    
+        driver.wins = request.json['wins']
+        db.session.commit()
+
+        data = makeData(driver, True)
+
+        return data
