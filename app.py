@@ -1,12 +1,13 @@
 from setup import app, api
-from application.routes.routes import Team, Motor
+from application.routes.routes import Team, Motor, Driver
 
 @app.get("/")
 def index():
     return "Hello World!"
 
-api.add_resource(Team, "/teams")
+api.add_resource(Team, "/teams", "/teams/<id>")
 api.add_resource(Motor, "/motors")  
+api.add_resource(Driver, "/drivers", "/drivers/<id>")  
 
 # @app.get("/motors")
 
