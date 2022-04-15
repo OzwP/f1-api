@@ -1,9 +1,33 @@
-from dataclasses import dataclass
 from flask import Response, request
 import flask_restful as fr
 import json
 from ..models import Motor as Motr, Driver as Drivr, Team as Tm
 from setup import db
+
+def makeData(items, single = False):
+    
+    data = {}
+
+    if not single:
+        
+        for item in items:
+            data[item.id] = {}
+            
+            for column in item.__table__.columns.keys():
+                data[item.id][column] = getattr(item, column)
+
+
+        return data
+    
+    else:
+    
+        data[items.id] = {}
+        
+        for column in items.__table__.columns.keys():
+            data[items.id][column] = getattr(items, column)
+
+        return data
+
 
 class Motor(fr.Resource):
     def get(self):
@@ -24,6 +48,8 @@ class Motor(fr.Resource):
 
         data = json.dumps({"id" : motor.id})
         return Response(data, status = 201)
+
+
 
 class Team(fr.Resource):
 
@@ -59,19 +85,26 @@ class Team(fr.Resource):
         return Response(data, status = 201)
 
 
+
 class Driver(fr.Resource):
-    def get(self):
-        drivers = Drivr.Driver.query.all()
-        
-        data = {}
 
-        for driver in drivers:
-            data[driver.id] = {}
+    def get(self, id = None):
         
-            for column in driver.__table__.columns.keys():
-                data[driver.id][column] = getattr(driver, column)
+        if not id:
+        
+            drivers = Drivr.Driver.query.all()
+            
+            data = makeData(drivers)
 
-        return data
+            return data
+        
+        else:
+
+            driver = Drivr.Driver.query.filter_by(id=id).first()
+
+            data = makeData(driver, True)
+
+            return data
 
     def post(self):
         team = Tm.Team.query.filter_by(name=request.json['team']).first()
@@ -88,14 +121,10 @@ class Driver(fr.Resource):
     def patch(self, id):
 
         driver = Drivr.Driver.query.filter_by(id=id).first()
-        data = {}
     
         driver.wins = request.json['wins']
         db.session.commit()
 
-        data[driver.id] = {}
-        
-        for column in driver.__table__.columns.keys():
-            data[driver.id][column] = getattr(driver, column)
+        data = makeData(driver, True)
 
         return data
