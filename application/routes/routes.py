@@ -3,40 +3,50 @@ import flask_restful as fr
 from ..models import Motor as motorModel, Driver as driverModel, Team as teamModel
 from setup import db
 
-def makeData(items, message = None, single = False):
+def makeData(item, message = None, single = True):
     
     data = {"message": message} if message else {}
 
-    if not single:
+    if single:
         
-        for item in items:
-            data[item.id] = {}
-            
-            for column in item.__table__.columns.keys():
-                data[item.id][column] = getattr(item, column)
-
+        data[item.id] = {}
+        
+        for column in item.__table__.columns.keys():
+            data[item.id][column] = getattr(item, column)
 
         return data
+        
     
     else:
-    
-        data[items.id] = {}
-        
-        for column in items.__table__.columns.keys():
-            data[items.id][column] = getattr(items, column)
+
+        for element in item:
+            data[element.id] = {}
+            
+            for column in element.__table__.columns.keys():
+                data[element.id][column] = getattr(element, column)
+
 
         return data
+    
+        
 
 
 class Motor(fr.Resource):
     
-    def get(self):
+    def get(self, id = None):
         
-        motors = motorModel.Motor.query.all()
+        if not id:
+
+            motors = motorModel.Motor.query.all()
+            data = makeData(motors, None, False)
+
+            return data
         
-        data = makeData(motors)
-        
-        return data
+        else:
+            motor = motorModel.Motor.query.filter_by(id=id).first()
+            data = makeData(motor)
+
+            return data
 
     def post(self):
         
@@ -45,9 +55,22 @@ class Motor(fr.Resource):
         db.session.add(motor)
         db.session.commit()
 
-        data = makeData(motor, "Resource succesfully created", True)
+        data = makeData(motor, "Resource succesfully created")
         return data, 201
 
+    def patch(self, id):
+
+        motor = motorModel.Motor.query.filter_by(id=id).first()
+
+        for column in request.json:
+            setattr(motor, column, request.json[column])
+
+        db.session.commit()
+
+        data = makeData(motor, "Resource succesfully updated")
+
+        return data
+    
     def delete(self, id):
 
         motor = motorModel.Motor.query.get(id)
@@ -55,7 +78,7 @@ class Motor(fr.Resource):
         db.session.delete(motor)
         db.session.commit()
 
-        data = makeData(motor, "Resource succesfully deleted", True)
+        data = makeData(motor, "Resource succesfully deleted")
         return data
 
 
@@ -67,13 +90,13 @@ class Team(fr.Resource):
         if not id:
 
             teams = teamModel.Team.query.all()
-            data = makeData(teams)
+            data = makeData(teams, None, False)
 
             return data
         
         else:
             team = teamModel.Team.query.filter_by(id=id).first()
-            data = makeData(team, True)
+            data = makeData(team)
 
             return data
 
@@ -87,9 +110,22 @@ class Team(fr.Resource):
         db.session.add(team)
         db.session.commit()
 
-        data = makeData(team)
+        data = makeData(team, "Resource succesfully created")
         return data, 201
 
+    def patch(self, id):
+
+        team = teamModel.Team.query.filter_by(id=id).first()
+
+        for column in request.json:
+            setattr(team, column, request.json[column])
+
+        db.session.commit()
+
+        data = makeData(team, "Resource succesfully updated")
+
+        return data
+    
     def delete(self, id):
 
         team = teamModel.Team.query.get(id)
@@ -97,7 +133,7 @@ class Team(fr.Resource):
         db.session.delete(team)
         db.session.commit()
 
-        data = makeData(team, "Resource succesfully deleted", True)
+        data = makeData(team, "Resource succesfully deleted")
         return data
 
 
@@ -110,7 +146,7 @@ class Driver(fr.Resource):
         
             drivers = driverModel.Driver.query.all()
             
-            data = makeData(drivers)
+            data = makeData(drivers, None, False)
 
             return data
         
@@ -118,7 +154,7 @@ class Driver(fr.Resource):
 
             driver = driverModel.Driver.query.filter_by(id=id).first()
 
-            data = makeData(driver, True)
+            data = makeData(driver)
 
             return data
 
@@ -131,7 +167,7 @@ class Driver(fr.Resource):
         db.session.add(driver)
         db.session.commit()
 
-        data = makeData(driver)
+        data = makeData(driver, "Resource succesfully created")
         return data, 201
 
     def patch(self, id):
@@ -143,7 +179,7 @@ class Driver(fr.Resource):
 
         db.session.commit()
 
-        data = makeData(driver, "Resource succesfully updated" ,True)
+        data = makeData(driver, "Resource succesfully updated")
 
         return data
 
@@ -154,5 +190,5 @@ class Driver(fr.Resource):
         db.session.delete(driver)
         db.session.commit()
 
-        data = makeData(driver, "Resource succesfully deleted", True)
+        data = makeData(driver, "Resource succesfully deleted")
         return data
