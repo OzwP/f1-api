@@ -43,7 +43,7 @@ class Motor(fr.Resource):
             return data
         
         else:
-            motor = motorModel.Motor.query.filter_by(id=id).first()
+            motor = motorModel.Motor.query.get(id)
             data = makeData(motor)
 
             return data
@@ -60,7 +60,7 @@ class Motor(fr.Resource):
 
     def patch(self, id):
 
-        motor = motorModel.Motor.query.filter_by(id=id).first()
+        motor = motorModel.Motor.query.get(id)
 
         for column in request.json:
             setattr(motor, column, request.json[column])
@@ -95,7 +95,7 @@ class Team(fr.Resource):
             return data
         
         else:
-            team = teamModel.Team.query.filter_by(id=id).first()
+            team = teamModel.Team.query.get(id)
             data = makeData(team)
 
             return data
@@ -115,7 +115,7 @@ class Team(fr.Resource):
 
     def patch(self, id):
 
-        team = teamModel.Team.query.filter_by(id=id).first()
+        team = teamModel.Team.query.get(id)
 
         for column in request.json:
             setattr(team, column, request.json[column])
@@ -152,7 +152,7 @@ class Driver(fr.Resource):
         
         else:
 
-            driver = driverModel.Driver.query.filter_by(id=id).first()
+            driver = driverModel.Driver.query.get(id)
 
             data = makeData(driver)
 
@@ -172,7 +172,7 @@ class Driver(fr.Resource):
 
     def patch(self, id):
 
-        driver = driverModel.Driver.query.filter_by(id=id).first()
+        driver = driverModel.Driver.query.get(id)
 
         for column in request.json:
             setattr(driver, column, request.json[column])
