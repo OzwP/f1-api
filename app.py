@@ -6,7 +6,7 @@ def index():
     return "Hello World!"
 
 api.add_resource(Team, "/teams", "/teams/<id>")
-api.add_resource(Motor, "/motors")  
+api.add_resource(Motor, "/motors", "/motors/<id>")  
 api.add_resource(Driver, "/drivers", "/drivers/<id>")  
 
 # @app.get("/motors")

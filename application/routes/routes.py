@@ -1,12 +1,11 @@
-from flask import Response, request
+from flask import request
 import flask_restful as fr
-import json
-from ..models import Motor as Motr, Driver as Drivr, Team as Tm
+from ..models import Motor as motorModel, Driver as driverModel, Team as teamModel
 from setup import db
 
-def makeData(items, single = False):
+def makeData(items, message = None, single = False):
     
-    data = {}
+    data = {"message": message} if message else {}
 
     if not single:
         
@@ -30,24 +29,34 @@ def makeData(items, single = False):
 
 
 class Motor(fr.Resource):
-    def get(self):
-        items = Motr.Motor.query.all()
-        data = {}
     
-        for item in items:
-            data[item.id] = {"name": item.name}
+    def get(self):
         
-        return json.dumps(data)
+        motors = motorModel.Motor.query.all()
+        
+        data = makeData(motors)
+        
+        return data
 
     def post(self):
         
-        motor = Motr.Motor(name=request.json['name'])
+        motor = motorModel.Motor(name=request.json['name'])
     
         db.session.add(motor)
         db.session.commit()
 
-        data = json.dumps({"id" : motor.id})
-        return Response(data, status = 201)
+        data = makeData(motor, "Resource succesfully created", True)
+        return data, 201
+
+    def delete(self, id):
+
+        motor = motorModel.Motor.query.get(id)
+
+        db.session.delete(motor)
+        db.session.commit()
+
+        data = makeData(motor, "Resource succesfully deleted", True)
+        return data
 
 
 
@@ -57,32 +66,39 @@ class Team(fr.Resource):
         
         if not id:
 
-            items = Tm.Team.query.all()
-            data = {}
-            print(request)
-            for item in items:
-                
-                data[item.id] = {"name": item.name}
+            teams = teamModel.Team.query.all()
+            data = makeData(teams)
 
             return data
         
         else:
-            team = Tm.Team.query.filter_by(id=id).first()
+            team = teamModel.Team.query.filter_by(id=id).first()
+            data = makeData(team, True)
 
-            return {team.id: team.name}
+            return data
 
     def post(self):
-        motor = Motr.Motor.query.filter_by(name=request.json['motor']).first()
+        motor = motorModel.Motor.query.filter_by(name=request.json['motor']).first()
 
-        team = Tm.Team(name=request.json['name'], 
+        team = teamModel.Team(name=request.json['name'], 
                     car = request.json['car'],
                     motor = motor)
     
         db.session.add(team)
         db.session.commit()
 
-        data = json.dumps({"id" : team.id})
-        return Response(data, status = 201)
+        data = makeData(team)
+        return data, 201
+
+    def delete(self, id):
+
+        team = teamModel.Team.query.get(id)
+
+        db.session.delete(team)
+        db.session.commit()
+
+        data = makeData(team, "Resource succesfully deleted", True)
+        return data
 
 
 
@@ -92,7 +108,7 @@ class Driver(fr.Resource):
         
         if not id:
         
-            drivers = Drivr.Driver.query.all()
+            drivers = driverModel.Driver.query.all()
             
             data = makeData(drivers)
 
@@ -100,31 +116,43 @@ class Driver(fr.Resource):
         
         else:
 
-            driver = Drivr.Driver.query.filter_by(id=id).first()
+            driver = driverModel.Driver.query.filter_by(id=id).first()
 
             data = makeData(driver, True)
 
             return data
 
     def post(self):
-        team = Tm.Team.query.filter_by(name=request.json['team']).first()
+        team = teamModel.Team.query.filter_by(name=request.json['team']).first()
 
-        driver = Drivr.Driver(name = request.json['name'],
+        driver = driverModel.Driver(name = request.json['name'],
                                 team = team)
 
         db.session.add(driver)
         db.session.commit()
 
-        data = json.dumps({"id" : driver.id})
-        return Response(data, status = 201)
+        data = makeData(driver)
+        return data, 201
 
     def patch(self, id):
 
-        driver = Drivr.Driver.query.filter_by(id=id).first()
-    
-        driver.wins = request.json['wins']
+        driver = driverModel.Driver.query.filter_by(id=id).first()
+
+        for column in request.json:
+            setattr(driver, column, request.json[column])
+
         db.session.commit()
 
-        data = makeData(driver, True)
+        data = makeData(driver, "Resource succesfully updated" ,True)
 
+        return data
+
+    def delete(self, id):
+
+        driver = driverModel.Driver.query.get(id)
+
+        db.session.delete(driver)
+        db.session.commit()
+
+        data = makeData(driver, "Resource succesfully deleted", True)
         return data
