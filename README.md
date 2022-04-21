@@ -27,6 +27,12 @@ A db with sample data is provided
 
 ## Usage
 
+To run server 
+
+```
+python app.py
+```
+
 ### Index
 
     GET request to index
