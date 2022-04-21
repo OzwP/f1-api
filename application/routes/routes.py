@@ -26,9 +26,7 @@ def makeData(item, message = None, single = True):
                 data[element.id][column] = getattr(element, column)
 
 
-        return data
-    
-        
+        return data     
 
 
 class Motor(fr.Resource):
@@ -161,8 +159,9 @@ class Driver(fr.Resource):
     def post(self):
         team = teamModel.Team.query.filter_by(name=request.json['team']).first()
 
-        driver = driverModel.Driver(name = request.json['name'],
-                                team = team)
+        
+        
+        driver = driverModel.Driver(name = request.json['name'], team = team, wins=request.json['wins']) if 'wins' in request.json else driverModel.Driver(name = request.json['name'], team = team) 
 
         db.session.add(driver)
         db.session.commit()
