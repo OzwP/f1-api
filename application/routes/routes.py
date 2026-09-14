@@ -3,30 +3,20 @@ import flask_restful as fr
 from ..models import Motor as motorModel, Driver as driverModel, Team as teamModel
 from ..extensions import db
 
+def serialize(item):
+    return {column: getattr(item, column) for column in item.__table__.columns.keys()}
+
+
 def makeData(item, message = None, single = True):
-    
+
     data = {"message": message} if message else {}
 
     if single:
-        
-        data[item.id] = {}
-        
-        for column in item.__table__.columns.keys():
-            data[item.id][column] = getattr(item, column)
-
-        return data
-        
-    
+        data["data"] = serialize(item)
     else:
+        data["data"] = [serialize(element) for element in item]
 
-        for element in item:
-            data[element.id] = {}
-            
-            for column in element.__table__.columns.keys():
-                data[element.id][column] = getattr(element, column)
-
-
-        return data     
+    return data
 
 
 class Motor(fr.Resource):
@@ -99,12 +89,10 @@ class Team(fr.Resource):
             return data
 
     def post(self):
-        motor = motorModel.Motor.query.filter_by(name=request.json['motor']).first()
-
-        team = teamModel.Team(name=request.json['name'], 
+        team = teamModel.Team(name=request.json['name'],
                     car = request.json['car'],
-                    motor = motor)
-    
+                    motor_id = request.json['motor_id'])
+
         db.session.add(team)
         db.session.commit()
 
@@ -157,11 +145,7 @@ class Driver(fr.Resource):
             return data
 
     def post(self):
-        team = teamModel.Team.query.filter_by(name=request.json['team']).first()
-
-        
-        
-        driver = driverModel.Driver(name = request.json['name'], team = team, wins=request.json['wins']) if 'wins' in request.json else driverModel.Driver(name = request.json['name'], team = team) 
+        driver = driverModel.Driver(name = request.json['name'], team_id = request.json['team_id'], wins=request.json['wins']) if 'wins' in request.json else driverModel.Driver(name = request.json['name'], team_id = request.json['team_id'])
 
         db.session.add(driver)
         db.session.commit()
