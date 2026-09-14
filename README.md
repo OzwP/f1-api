@@ -23,7 +23,12 @@ Now the requirements can be installed
 pip install -r requirements.txt
 ```
 
-A db with sample data is provided
+Then create the database by applying the migrations
+
+``` bash
+export FLASK_APP=app.py
+flask db upgrade
+```
 
 ## Usage
 
@@ -42,11 +47,11 @@ python app.py
 
 #### GET
 
-    # returns a collection of all the objects in the db with all their properties
+    # returns {"data": [...]} with all the objects in the db and their properties
 
 #### GET <id>
 
-    # returns the object of the specified id with with all its properties
+    # returns {"data": {...}} with the object of the specified id and its properties
 
 #### POST
 
@@ -56,10 +61,10 @@ python app.py
     Expected: string:name
 
     -teams
-    Expected: Motor:motor, string:name, string:car
+    Expected: int:motor_id, string:name, string:car
 
     -drivers
-    Expected: Team:team, string:name, (optional) int:wins
+    Expected: int:team_id, string:name, (optional) int:wins
 
 PATCH <id>
 

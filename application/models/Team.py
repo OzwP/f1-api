@@ -6,8 +6,8 @@ class Team(db.Model):
     car = db.Column(db.String(30))
     
     driver = db.relationship("Driver", backref='team')
-    
-    motor_name = db.Column(db.String(80), db.ForeignKey('motor.name'))
-    
+
+    motor_id = db.Column(db.Integer, db.ForeignKey('motor.id'))
+
     def __repr__(self) -> str:
-        return '{%s: %s}' %(self.name, self.motor_name)
+        return '{%s: %s}' %(self.name, self.motor_id)
