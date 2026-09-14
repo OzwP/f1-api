@@ -45,6 +45,10 @@ original code during Phase 0.
   part of the record.
 - Merge PRs with a merge commit (`--no-ff`), not squash — the commit
   decomposition inside the PR is deliberate and worth keeping.
+- This repo is public: commit messages and PR bodies may include a
+  `Co-Authored-By: Claude ...` trailer, but never a `Claude-Session:`
+  link — that URL is a direct link into the session and shouldn't be
+  published.
 
 ## Key technical decisions (made during rebuild planning)
 
