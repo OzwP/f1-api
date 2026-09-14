@@ -1,7 +1,7 @@
 from flask import request
 import flask_restful as fr
 from ..models import Motor as motorModel, Driver as driverModel, Team as teamModel
-from setup import db
+from ..extensions import db
 
 def makeData(item, message = None, single = True):
     
