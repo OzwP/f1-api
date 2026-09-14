@@ -2,7 +2,7 @@ from flask import Flask
 from flask_restful import Api
 
 from .config import config
-from .extensions import db
+from .extensions import db, migrate
 
 
 def create_app(config_name="default"):
@@ -10,6 +10,7 @@ def create_app(config_name="default"):
     app.config.from_object(config[config_name])
 
     db.init_app(app)
+    migrate.init_app(app, db)
 
     from .routes.routes import Driver, Motor, Team
 
