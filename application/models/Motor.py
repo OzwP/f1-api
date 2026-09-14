@@ -1,4 +1,4 @@
-from setup import db
+from ..extensions import db
 
 
 class Motor(db.Model):

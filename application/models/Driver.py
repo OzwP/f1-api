@@ -1,4 +1,4 @@
-from setup import db
+from ..extensions import db
 
 class Driver(db.Model):
     id = db.Column(db.Integer, primary_key=True)
