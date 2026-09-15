@@ -2,13 +2,22 @@ import datetime
 
 from flask import request
 import flask_restful as fr
+from marshmallow import ValidationError
+
 from ..models import (
     Motor as motorModel,
     Driver as driverModel,
     Team as teamModel,
     Race as raceModel,
+    Result as resultModel,
 )
 from ..extensions import db
+from ..schemas import (
+    driver_schema,
+    driver_patch_schema,
+    result_schema,
+    result_patch_schema,
+)
 
 def serialize(item):
     def to_json_value(value):
@@ -32,6 +41,13 @@ def makeData(item, message = None, single = True):
         data["data"] = [serialize(element) for element in item]
 
     return data
+
+
+def load_or_400(schema, json_body):
+    try:
+        return schema.load(json_body or {})
+    except ValidationError as err:
+        fr.abort(400, message="Validation error", errors=err.messages)
 
 
 def serialize_result_with_driver(result):
@@ -176,7 +192,9 @@ class Driver(fr.Resource):
             return data
 
     def post(self):
-        driver = driverModel.Driver(name = request.json['name'], team_id = request.json['team_id'])
+        payload = load_or_400(driver_schema, request.json)
+
+        driver = driverModel.Driver(name=payload["name"], team_id=payload.get("team_id"))
 
         db.session.add(driver)
         db.session.commit()
@@ -188,8 +206,10 @@ class Driver(fr.Resource):
 
         driver = driverModel.Driver.query.get_or_404(id)
 
-        for column in request.json:
-            setattr(driver, column, request.json[column])
+        payload = load_or_400(driver_patch_schema, request.json)
+
+        for column, value in payload.items():
+            setattr(driver, column, value)
 
         db.session.commit()
 
@@ -235,4 +255,58 @@ class RaceResults(fr.Resource):
 
         data = {"data": [serialize_result_with_driver(result) for result in race.results]}
 
+        return data
+
+
+class Result(fr.Resource):
+
+    def get(self, id = None):
+
+        if not id:
+
+            results = resultModel.Result.query.all()
+            data = makeData(results, None, False)
+
+            return data
+
+        result = resultModel.Result.query.get_or_404(id)
+
+        data = makeData(result)
+
+        return data
+
+    def post(self):
+        payload = load_or_400(result_schema, request.json)
+
+        result = resultModel.Result(**payload)
+
+        db.session.add(result)
+        db.session.commit()
+
+        data = makeData(result, "Resource succesfully created")
+        return data, 201
+
+    def patch(self, id):
+
+        result = resultModel.Result.query.get_or_404(id)
+
+        payload = load_or_400(result_patch_schema, request.json)
+
+        for column, value in payload.items():
+            setattr(result, column, value)
+
+        db.session.commit()
+
+        data = makeData(result, "Resource succesfully updated")
+
+        return data
+
+    def delete(self, id):
+
+        result = resultModel.Result.query.get_or_404(id)
+
+        db.session.delete(result)
+        db.session.commit()
+
+        data = makeData(result, "Resource succesfully deleted")
         return data
