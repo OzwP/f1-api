@@ -12,12 +12,14 @@ def create_app(config_name="default"):
     db.init_app(app)
     migrate.init_app(app, db)
 
-    from .routes.routes import Driver, Motor, Team
+    from .routes.routes import Driver, Motor, Team, Race, RaceResults
 
     api = Api(app)
     api.add_resource(Motor, "/motors", "/motors/<int:id>")
     api.add_resource(Team, "/teams", "/teams/<int:id>")
     api.add_resource(Driver, "/drivers", "/drivers/<int:id>")
+    api.add_resource(Race, "/races", "/races/<int:id>")
+    api.add_resource(RaceResults, "/races/<int:id>/results")
 
     @app.get("/")
     def index():
