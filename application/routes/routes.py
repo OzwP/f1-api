@@ -43,6 +43,21 @@ def makeData(item, message = None, single = True):
     return data
 
 
+def paginated_data(query):
+    page = request.args.get("page", 1, type=int)
+    per_page = request.args.get("per_page", 20, type=int)
+
+    result = db.paginate(query, page=page, per_page=per_page, error_out=False)
+
+    return {
+        "data": [serialize(item) for item in result.items],
+        "page": result.page,
+        "per_page": result.per_page,
+        "total": result.total,
+        "pages": result.pages,
+    }
+
+
 def load_or_400(schema, json_body):
     try:
         return schema.load(json_body or {})
@@ -71,12 +86,8 @@ class Motor(fr.Resource):
     def get(self, id = None):
         
         if not id:
+            return paginated_data(db.select(motorModel.Motor))
 
-            motors = motorModel.Motor.query.all()
-            data = makeData(motors, None, False)
-
-            return data
-        
         else:
             motor = motorModel.Motor.query.get_or_404(id)
             data = makeData(motor)
@@ -123,12 +134,8 @@ class Team(fr.Resource):
     def get(self, id=None):
         
         if not id:
+            return paginated_data(db.select(teamModel.Team))
 
-            teams = teamModel.Team.query.all()
-            data = makeData(teams, None, False)
-
-            return data
-        
         else:
             team = teamModel.Team.query.get_or_404(id)
             data = makeData(team)
@@ -176,13 +183,8 @@ class Driver(fr.Resource):
     def get(self, id = None):
         
         if not id:
-        
-            drivers = driverModel.Driver.query.all()
-            
-            data = makeData(drivers, None, False)
+            return paginated_data(db.select(driverModel.Driver))
 
-            return data
-        
         else:
 
             driver = driverModel.Driver.query.get_or_404(id)
@@ -234,11 +236,13 @@ class Race(fr.Resource):
     def get(self, id = None):
 
         if not id:
+            query = db.select(raceModel.Race)
 
-            races = raceModel.Race.query.all()
-            data = makeData(races, None, False)
+            season = request.args.get("season", type=int)
+            if season is not None:
+                query = query.where(raceModel.Race.season == season)
 
-            return data
+            return paginated_data(query)
 
         else:
             race = raceModel.Race.query.get_or_404(id)
@@ -263,11 +267,7 @@ class Result(fr.Resource):
     def get(self, id = None):
 
         if not id:
-
-            results = resultModel.Result.query.all()
-            data = makeData(results, None, False)
-
-            return data
+            return paginated_data(db.select(resultModel.Result))
 
         result = resultModel.Result.query.get_or_404(id)
 
