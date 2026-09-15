@@ -12,7 +12,7 @@ def create_app(config_name="default"):
     db.init_app(app)
     migrate.init_app(app, db)
 
-    from .routes.routes import Driver, Motor, Team, Race, RaceResults
+    from .routes.routes import Driver, Motor, Team, Race, RaceResults, Result
 
     api = Api(app)
     api.add_resource(Motor, "/motors", "/motors/<int:id>")
@@ -20,6 +20,7 @@ def create_app(config_name="default"):
     api.add_resource(Driver, "/drivers", "/drivers/<int:id>")
     api.add_resource(Race, "/races", "/races/<int:id>")
     api.add_resource(RaceResults, "/races/<int:id>/results")
+    api.add_resource(Result, "/results", "/results/<int:id>")
 
     @app.get("/")
     def index():

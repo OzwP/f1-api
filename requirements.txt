@@ -3,3 +3,4 @@ Flask-Migrate==4.1.0
 Flask-RESTful==0.3.10
 Flask-SQLAlchemy==3.1.1
 SQLAlchemy==2.0.52
+marshmallow==4.3.1

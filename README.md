@@ -43,19 +43,23 @@ python app.py
     GET request to index
     # returns 'Hello World!'
 
-### All endpoints (/motors, /drivers, /teams) accept the following methods:
+### All endpoints (/motors, /drivers, /teams, /races, /results) accept the following methods:
 
 #### GET
 
-    # returns {"data": [...]} with all the objects in the db and their properties
+    # returns {"data": [...], "page": 1, "per_page": 20, "total": N, "pages": M}
+    # supports ?page= and ?per_page= query params
+    # /races also supports ?season= to filter by season
 
 #### GET <id>
 
     # returns {"data": {...}} with the object of the specified id and its properties
+    # returns 404 if no object exists with that id
 
 #### POST
 
     #returns status code 201 when creating an appropriate resource
+    #returns status code 400 with {"message": "Validation error", "errors": {...}} on bad input
 
     -motors 
     Expected: string:name
@@ -64,18 +68,24 @@ python app.py
     Expected: int:motor_id, string:name, string:car
 
     -drivers
-    Expected: int:team_id, string:name, (optional) int:wins
+    Expected: string:name, (optional) int:team_id
+
+    -results
+    Expected: int:race_id, int:driver_id, int:position, float:points
 
 PATCH <id>
 
     # returns status code 200 when updating resource successfully 
+    # returns status code 400 on bad input (drivers and results only)
+    # returns status code 404 if no object exists with that id
 
     For example when making a PATCH call to localhost/drivers/2 
-    {wins: 4} can be provided in the body to update said column
+    {"team_id": 4} can be provided in the body to update said column
 
 #### DELETE
 
     # returns status code 200 when successfully deleting a resource
+    # returns status code 404 if no object exists with that id
 
 ## Contributing
 
