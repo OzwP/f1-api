@@ -1,5 +1,7 @@
 # F1-API
 
+[![Tests](https://github.com/OzwP/f1-api/actions/workflows/test.yml/badge.svg)](https://github.com/OzwP/f1-api/actions/workflows/test.yml)
+
 ## Installation
 
 Using a python virtual environment is recommended prior to installing
@@ -86,6 +88,20 @@ PATCH <id>
 
     # returns status code 200 when successfully deleting a resource
     # returns status code 404 if no object exists with that id
+
+## Testing
+
+Install dev dependencies (includes pytest on top of the app's requirements)
+and run the suite:
+
+``` bash
+pip install -r requirements-dev.txt
+pytest
+```
+
+Tests run against an in-memory SQLite database (the `testing` config) and
+seed their own data per test, so they don't touch `data.db`. The same
+command runs in CI on every push and pull request.
 
 ## Contributing
 
