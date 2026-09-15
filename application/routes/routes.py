@@ -1,10 +1,25 @@
+import datetime
+
 from flask import request
 import flask_restful as fr
-from ..models import Motor as motorModel, Driver as driverModel, Team as teamModel
+from ..models import (
+    Motor as motorModel,
+    Driver as driverModel,
+    Team as teamModel,
+    Race as raceModel,
+)
 from ..extensions import db
 
 def serialize(item):
-    return {column: getattr(item, column) for column in item.__table__.columns.keys()}
+    def to_json_value(value):
+        if isinstance(value, (datetime.date, datetime.datetime)):
+            return value.isoformat()
+        return value
+
+    return {
+        column: to_json_value(getattr(item, column))
+        for column in item.__table__.columns.keys()
+    }
 
 
 def makeData(item, message = None, single = True):
@@ -17,6 +32,22 @@ def makeData(item, message = None, single = True):
         data["data"] = [serialize(element) for element in item]
 
     return data
+
+
+def serialize_result_with_driver(result):
+    driver = result.driver
+    team = driver.team
+
+    return {
+        "id": result.id,
+        "position": result.position,
+        "points": result.points,
+        "driver": {
+            "id": driver.id,
+            "name": driver.name,
+            "team": {"id": team.id, "name": team.name} if team else None,
+        },
+    }
 
 
 class Motor(fr.Resource):
@@ -145,7 +176,7 @@ class Driver(fr.Resource):
             return data
 
     def post(self):
-        driver = driverModel.Driver(name = request.json['name'], team_id = request.json['team_id'], wins=request.json['wins']) if 'wins' in request.json else driverModel.Driver(name = request.json['name'], team_id = request.json['team_id'])
+        driver = driverModel.Driver(name = request.json['name'], team_id = request.json['team_id'])
 
         db.session.add(driver)
         db.session.commit()
@@ -174,4 +205,34 @@ class Driver(fr.Resource):
         db.session.commit()
 
         data = makeData(driver, "Resource succesfully deleted")
+        return data
+
+
+
+class Race(fr.Resource):
+
+    def get(self, id = None):
+
+        if not id:
+
+            races = raceModel.Race.query.all()
+            data = makeData(races, None, False)
+
+            return data
+
+        else:
+            race = raceModel.Race.query.get(id)
+            data = makeData(race)
+
+            return data
+
+
+class RaceResults(fr.Resource):
+
+    def get(self, id):
+
+        race = raceModel.Race.query.get(id)
+
+        data = {"data": [serialize_result_with_driver(result) for result in race.results]}
+
         return data
