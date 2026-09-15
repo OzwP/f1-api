@@ -62,7 +62,7 @@ class Motor(fr.Resource):
             return data
         
         else:
-            motor = motorModel.Motor.query.get(id)
+            motor = motorModel.Motor.query.get_or_404(id)
             data = makeData(motor)
 
             return data
@@ -79,7 +79,7 @@ class Motor(fr.Resource):
 
     def patch(self, id):
 
-        motor = motorModel.Motor.query.get(id)
+        motor = motorModel.Motor.query.get_or_404(id)
 
         for column in request.json:
             setattr(motor, column, request.json[column])
@@ -92,7 +92,7 @@ class Motor(fr.Resource):
     
     def delete(self, id):
 
-        motor = motorModel.Motor.query.get(id)
+        motor = motorModel.Motor.query.get_or_404(id)
 
         db.session.delete(motor)
         db.session.commit()
@@ -114,7 +114,7 @@ class Team(fr.Resource):
             return data
         
         else:
-            team = teamModel.Team.query.get(id)
+            team = teamModel.Team.query.get_or_404(id)
             data = makeData(team)
 
             return data
@@ -132,7 +132,7 @@ class Team(fr.Resource):
 
     def patch(self, id):
 
-        team = teamModel.Team.query.get(id)
+        team = teamModel.Team.query.get_or_404(id)
 
         for column in request.json:
             setattr(team, column, request.json[column])
@@ -145,7 +145,7 @@ class Team(fr.Resource):
     
     def delete(self, id):
 
-        team = teamModel.Team.query.get(id)
+        team = teamModel.Team.query.get_or_404(id)
 
         db.session.delete(team)
         db.session.commit()
@@ -169,7 +169,7 @@ class Driver(fr.Resource):
         
         else:
 
-            driver = driverModel.Driver.query.get(id)
+            driver = driverModel.Driver.query.get_or_404(id)
 
             data = makeData(driver)
 
@@ -186,7 +186,7 @@ class Driver(fr.Resource):
 
     def patch(self, id):
 
-        driver = driverModel.Driver.query.get(id)
+        driver = driverModel.Driver.query.get_or_404(id)
 
         for column in request.json:
             setattr(driver, column, request.json[column])
@@ -199,7 +199,7 @@ class Driver(fr.Resource):
 
     def delete(self, id):
 
-        driver = driverModel.Driver.query.get(id)
+        driver = driverModel.Driver.query.get_or_404(id)
 
         db.session.delete(driver)
         db.session.commit()
@@ -221,7 +221,7 @@ class Race(fr.Resource):
             return data
 
         else:
-            race = raceModel.Race.query.get(id)
+            race = raceModel.Race.query.get_or_404(id)
             data = makeData(race)
 
             return data
@@ -231,7 +231,7 @@ class RaceResults(fr.Resource):
 
     def get(self, id):
 
-        race = raceModel.Race.query.get(id)
+        race = raceModel.Race.query.get_or_404(id)
 
         data = {"data": [serialize_result_with_driver(result) for result in race.results]}
 
