@@ -73,10 +73,11 @@ mid-phase without flagging it first:
    consumers yet, so this is free now and everything after it (pagination
    in Phase 3, tests in Phase 4) is built on the right shape from the
    start.
-5. **CI (originally Phase 7) is pulled forward to right after Phase 4**
-   (tests), not left until after Docker/Postgres in Phase 6. It runs
-   against SQLite initially; the Postgres service container is added once
-   Phase 6 merges.
+5. **CI (originally its own Phase 7) is folded into Phase 4**, wired up in
+   the same PR as the pytest suite instead of left until after
+   Docker/Postgres in Phase 6 — no gap where tests exist but nothing runs
+   them on push. It runs against SQLite initially; the Postgres service
+   container is added once Phase 6 merges.
 6. **One fresh session per phase.** Each session is scoped to a single
    phase, branches off current `main`, and opens one PR. Don't carry one
    session across multiple phases.

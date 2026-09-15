@@ -66,7 +66,7 @@ over natural keys (name) as foreign keys in relational design.
       name and team nested in — this is your first real multi-table join
 - [ ] Generate an Alembic migration for the new tables
 - [ ] Decide whether `Driver.wins` stays as a denormalized cache or is
-      dropped now that it's derivable from `Result` (see Phase 9 note about
+      dropped now that it's derivable from `Result` (see Phase 8 note about
       not storing standings redundantly — same argument applies here)
 
 **Concept to look up:** SQLAlchemy relationship `backref` vs `back_populates`,
@@ -87,12 +87,24 @@ directly in production code.
 
 ---
 
-## Phase 4 — Tests (pytest)
+## Phase 4 — Tests (pytest) + CI (GitHub Actions)
+
+*(CI folded into this phase — previously its own Phase 7 further down the
+list; see `CLAUDE.md` decisions log. Wiring CI up alongside the test
+suite means every phase from 5 onward is checked automatically from the
+start, instead of leaving a gap where tests exist but nothing runs them
+on push. CI runs on SQLite initially; add the Postgres service container
+once Phase 6 lands.)*
+
 - [ ] Set up a test config pointing at an in-memory SQLite db, separate from dev
 - [ ] Write fixtures that seed a handful of teams/drivers/races before each test
 - [ ] Cover: GET list, GET by id, GET missing id (404), POST valid, POST
       invalid (400), PATCH, DELETE — for at least Driver and Result
 - [ ] Aim for meaningful coverage, not 100% — test behavior, not lines
+- [ ] Add `.github/workflows/test.yml` running pytest on every push/PR
+- [ ] Spin up a Postgres service container in the workflow (once Phase 6 is
+      merged) so tests run against the real DB engine, not just SQLite
+- [ ] Add the passing/failing badge to your README
 
 **Concept to look up:** pytest fixtures and `conftest.py`; Flask's test client.
 
@@ -120,28 +132,14 @@ for a "real" deployed service; Docker networking between containers.
 
 ---
 
-## Phase 7 — CI (GitHub Actions)
-
-*(Pulled forward to run right after Phase 4 in this rebuild — see
-`CLAUDE.md` decisions log — so every phase from 5 onward is checked
-automatically. Runs on SQLite initially; add the Postgres service
-container once Phase 6 lands.)*
-
-- [ ] Add `.github/workflows/test.yml` running pytest on every push/PR
-- [ ] Spin up a Postgres service container in the workflow (once Phase 6 is
-      merged) so tests run against the real DB engine, not just SQLite
-- [ ] Add the passing/failing badge to your README
-
----
-
-## Phase 8 — Deploy
+## Phase 7 — Deploy
 - [ ] Pick Render or Fly.io (both have a free Postgres + web service pairing)
 - [ ] Deploy, confirm the live URL responds
 - [ ] Update the README with the live URL and example requests
 
 ---
 
-## Phase 9 — Stretch goals (pick if you have energy left)
+## Phase 8 — Stretch goals (pick if you have energy left)
 - [ ] `GET /standings/<season>` — compute the championship table by aggregating
       `Result` rows, don't store it redundantly
 - [ ] Response caching on list endpoints
