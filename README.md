@@ -121,6 +121,34 @@ instead of duplicating them. The upstream API doesn't expose engine
 manufacturer or chassis name, so engine is filled in from a small
 season-specific lookup in `seed.py` and `car` is left unset.
 
+## Running with Docker Compose
+
+The app and a Postgres database can be brought up together, no local
+Python install required:
+
+``` bash
+docker compose up --build
+```
+
+This builds the `web` image, starts Postgres, waits for it to be healthy,
+runs `flask db upgrade` (via the container's entrypoint), and starts the
+app with gunicorn on `http://localhost:5000`. Postgres data persists in
+the `pgdata` volume across restarts.
+
+To seed it with real data once it's up:
+
+``` bash
+docker compose exec web python seed.py --season 2023
+```
+
+## Configuration
+
+`DATABASE_URL` selects the database for the `production` config (used by
+Docker Compose above); without it, `ProductionConfig` falls back to the
+same local SQLite file as development. `FLASK_CONFIG` selects which
+config class `app.py` loads (`development` by default, `production` in
+Docker Compose, `testing` under pytest).
+
 ## Contributing
 
 Pull requests are welcome. For major changes, please open an issue first

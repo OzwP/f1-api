@@ -120,10 +120,19 @@ once Phase 6 lands.)*
 ---
 
 ## Phase 6 — Postgres + Docker
-- [ ] Swap SQLAlchemy's connection string from SQLite to Postgres
+
+*(`docker-compose up` and the Postgres migration run could not be executed
+live in the sandboxed session that wrote this — its network policy blocks
+the Docker Hub CDN. Everything below was reviewed and unit-tested short of
+that: `docker compose config` validates the compose file, the app's SQLite
+test suite still passes against the same code paths, and `psycopg2-binary`
+installs and imports cleanly. Run `docker compose up --build` locally to
+do the live confirmation and check these off for real.)*
+
+- [x] Swap SQLAlchemy's connection string from SQLite to Postgres
       (env-var driven, don't hardcode credentials)
-- [ ] Write a `Dockerfile` for the Flask app
-- [ ] Write a `docker-compose.yml` running the app + a Postgres service together
+- [x] Write a `Dockerfile` for the Flask app
+- [x] Write a `docker-compose.yml` running the app + a Postgres service together
 - [ ] Confirm `docker-compose up` gets you a working API from a clean checkout
 - [ ] Run Alembic migrations against Postgres and confirm they apply cleanly
 
