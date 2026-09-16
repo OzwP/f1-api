@@ -1,3 +1,11 @@
 __pycache__
 /.venv
 data.db
+
+# Terraform
+terraform/**/.terraform/
+terraform/**/*.tfstate
+terraform/**/*.tfstate.*
+terraform/**/terraform.tfvars
+terraform/**/*.pem
+crash.log
