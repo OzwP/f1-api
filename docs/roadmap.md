@@ -163,10 +163,12 @@ remaining items are yours to do from your own AWS account.)*
 ---
 
 ## Phase 8 — Stretch goals (pick if you have energy left)
-- [ ] `GET /standings/<season>` — compute the championship table by aggregating
+- [x] `GET /standings/<season>` — compute the championship table by aggregating
       `Result` rows, don't store it redundantly
-- [ ] Response caching on list endpoints
-- [ ] API docs via Swagger/OpenAPI (flask-smorest or similar)
+- [x] Response caching on list endpoints
+- [x] API docs via Swagger/OpenAPI (used apispec + flask-swagger-ui rather
+      than flask-smorest, to avoid rewriting the existing Flask-RESTful
+      resources as MethodViews — see README's "API docs" section)
 
 ---
 

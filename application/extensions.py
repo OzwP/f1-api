@@ -11,8 +11,10 @@ here — ``create_app()`` builds a fresh ``Api(app)`` each time, which is what
 lets it be called more than once (e.g. once per test).
 """
 
+from flask_caching import Cache
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 migrate = Migrate()
+cache = Cache()

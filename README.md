@@ -89,6 +89,31 @@ PATCH <id>
     # returns status code 200 when successfully deleting a resource
     # returns status code 404 if no object exists with that id
 
+### GET /standings/&lt;season&gt;
+
+    # returns {"season": 2024, "data": [{"rank": 1, "points": 25.0, "driver": {"id": 1, "name": "...", "team": {"id": 1, "name": "..."}}}, ...]}
+    # computed from Result rows on every request, not stored
+    # ties share a rank (two drivers on 25 points are both rank 1, the next is rank 3)
+    # an unknown/empty season returns 200 with an empty "data" array, not a 404
+
+### API docs
+
+Interactive Swagger UI is served at `/docs`, backed by the OpenAPI 3 spec
+at `/openapi.json` (built in `application/docs.py`).
+
+### Caching
+
+List endpoints (`/motors`, `/teams`, `/drivers`, `/races`, `/results`,
+`/standings/<season>`) are cached for `CACHE_DEFAULT_TIMEOUT` seconds
+(30s by default), keyed on the full query string so different
+`?page=`/`?per_page=`/`?season=` combinations don't collide. Any create,
+update, or delete through the API clears the whole cache, so writes are
+never masked by a stale read. Single-resource lookups by id aren't
+cached. The default `CACHE_TYPE` is Flask-Caching's `SimpleCache`
+(in-process, not shared across workers/instances) — fine for a single
+container, but swap in a shared backend like Redis before running more
+than one.
+
 ## Testing
 
 Install dev dependencies (includes pytest on top of the app's requirements)
