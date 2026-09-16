@@ -103,6 +103,24 @@ Tests run against an in-memory SQLite database (the `testing` config) and
 seed their own data per test, so they don't touch `data.db`. The same
 command runs in CI on every push and pull request.
 
+## Seeding real data
+
+`seed.py` pulls one season of teams, drivers, races, and results from the
+[Jolpica-F1 API](https://api.jolpi.ca/ergast/f1) (Ergast's maintained
+successor) and writes it into the configured database:
+
+``` bash
+export FLASK_APP=app.py
+flask db upgrade
+python seed.py --season 2023
+```
+
+It's safe to run more than once — every row is looked up by its natural
+key before insert, so re-running the same season updates existing rows
+instead of duplicating them. The upstream API doesn't expose engine
+manufacturer or chassis name, so engine is filled in from a small
+season-specific lookup in `seed.py` and `car` is left unset.
+
 ## Contributing
 
 Pull requests are welcome. For major changes, please open an issue first
