@@ -1,0 +1,14 @@
+# Copy to terraform.tfvars (gitignored) and fill in, or pass equivalent
+# TF_VAR_* environment variables / -var flags instead so secrets never
+# touch disk in plaintext.
+
+aws_region  = "us-east-1"
+db_password = "CHANGE-ME"
+
+# openssl genrsa -out cloudfront-signer.pem 2048
+# openssl rsa -pubout -in cloudfront-signer.pem -out cloudfront-signer-public.pem
+cloudfront_public_key_pem = <<-EOT
+  -----BEGIN PUBLIC KEY-----
+  PASTE-YOUR-PUBLIC-KEY-HERE
+  -----END PUBLIC KEY-----
+EOT
