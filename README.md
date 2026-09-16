@@ -149,6 +149,40 @@ same local SQLite file as development. `FLASK_CONFIG` selects which
 config class `app.py` loads (`development` by default, `production` in
 Docker Compose, `testing` under pytest).
 
+## Deploying
+
+The app is deploy-ready via its `Dockerfile` on either Render or Fly.io,
+both of which offer a free web service + Postgres pairing. Neither step
+below has been run against a live account — do it from your own login,
+then update this section with the live URL.
+
+### Render
+
+`render.yaml` at the repo root is a Blueprint: it provisions a free
+Postgres database (`f1-api-db`) and a Docker web service (`f1-api`) wired
+together via `DATABASE_URL`, and sets `FLASK_CONFIG=production`.
+
+1. On [Render](https://render.com), New → Blueprint, point it at this repo
+2. Render reads `render.yaml`, provisions the database and web service, and
+   builds the `Dockerfile`
+3. The container's entrypoint runs `flask db upgrade` on boot, so the
+   schema is created automatically on first deploy
+
+### Fly.io
+
+`fly.toml` is a starting config (`app` name is a placeholder — Fly
+generates names during `fly launch`).
+
+``` bash
+fly launch --no-deploy          # reconciles fly.toml, reserves an app name
+fly postgres create              # free-tier Postgres cluster
+fly postgres attach <db-app-name>  # wires DATABASE_URL into secrets
+fly deploy
+```
+
+`fly postgres attach` sets `DATABASE_URL` as a Fly secret automatically;
+`FLASK_CONFIG=production` is already set via `fly.toml`.
+
 ## Contributing
 
 Pull requests are welcome. For major changes, please open an issue first

@@ -142,7 +142,15 @@ for a "real" deployed service; Docker networking between containers.
 ---
 
 ## Phase 7 — Deploy
-- [ ] Pick Render or Fly.io (both have a free Postgres + web service pairing)
+
+*(Prepped, not executed — deploying needs a live Render/Fly.io account and
+credentials this session doesn't have. `render.yaml` and `fly.toml` are
+ready to go; the remaining two items are yours to do from your own
+login.)*
+
+- [x] Pick Render or Fly.io (both have a free Postgres + web service pairing)
+      — both are prepped, see `render.yaml` / `fly.toml` and the README's
+      "Deploying" section
 - [ ] Deploy, confirm the live URL responds
 - [ ] Update the README with the live URL and example requests
 
