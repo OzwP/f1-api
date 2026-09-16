@@ -3,6 +3,7 @@ import datetime
 from flask import request
 import flask_restful as fr
 from marshmallow import ValidationError
+from sqlalchemy import func
 
 from ..models import (
     Motor as motorModel,
@@ -11,13 +12,28 @@ from ..models import (
     Race as raceModel,
     Result as resultModel,
 )
-from ..extensions import db
+from ..extensions import cache, db
 from ..schemas import (
     driver_schema,
     driver_patch_schema,
     result_schema,
     result_patch_schema,
 )
+
+# Cache list endpoints only, not single-resource lookups by id — `unless`
+# skips caching whenever the view was matched with an `id` in the URL.
+# SimpleCache is per-process: on a multi-worker deployment this means each
+# worker has its own cache, which is fine for cutting duplicate-query load
+# but isn't a shared/consistent cache across workers.
+def cache_list(f):
+    return cache.cached(
+        query_string=True,
+        unless=lambda: request.view_args and request.view_args.get("id") is not None,
+    )(f)
+
+
+def invalidate_cache():
+    cache.clear()
 
 def serialize(item):
     def to_json_value(value):
@@ -82,7 +98,8 @@ def serialize_result_with_driver(result):
 
 
 class Motor(fr.Resource):
-    
+
+    @cache_list
     def get(self, id = None):
         
         if not id:
@@ -100,6 +117,7 @@ class Motor(fr.Resource):
     
         db.session.add(motor)
         db.session.commit()
+        invalidate_cache()
 
         data = makeData(motor, "Resource succesfully created")
         return data, 201
@@ -112,17 +130,19 @@ class Motor(fr.Resource):
             setattr(motor, column, request.json[column])
 
         db.session.commit()
+        invalidate_cache()
 
         data = makeData(motor, "Resource succesfully updated")
 
         return data
-    
+
     def delete(self, id):
 
         motor = motorModel.Motor.query.get_or_404(id)
 
         db.session.delete(motor)
         db.session.commit()
+        invalidate_cache()
 
         data = makeData(motor, "Resource succesfully deleted")
         return data
@@ -131,6 +151,7 @@ class Motor(fr.Resource):
 
 class Team(fr.Resource):
 
+    @cache_list
     def get(self, id=None):
         
         if not id:
@@ -149,6 +170,7 @@ class Team(fr.Resource):
 
         db.session.add(team)
         db.session.commit()
+        invalidate_cache()
 
         data = makeData(team, "Resource succesfully created")
         return data, 201
@@ -161,17 +183,19 @@ class Team(fr.Resource):
             setattr(team, column, request.json[column])
 
         db.session.commit()
+        invalidate_cache()
 
         data = makeData(team, "Resource succesfully updated")
 
         return data
-    
+
     def delete(self, id):
 
         team = teamModel.Team.query.get_or_404(id)
 
         db.session.delete(team)
         db.session.commit()
+        invalidate_cache()
 
         data = makeData(team, "Resource succesfully deleted")
         return data
@@ -180,6 +204,7 @@ class Team(fr.Resource):
 
 class Driver(fr.Resource):
 
+    @cache_list
     def get(self, id = None):
         
         if not id:
@@ -200,6 +225,7 @@ class Driver(fr.Resource):
 
         db.session.add(driver)
         db.session.commit()
+        invalidate_cache()
 
         data = makeData(driver, "Resource succesfully created")
         return data, 201
@@ -214,6 +240,7 @@ class Driver(fr.Resource):
             setattr(driver, column, value)
 
         db.session.commit()
+        invalidate_cache()
 
         data = makeData(driver, "Resource succesfully updated")
 
@@ -225,6 +252,7 @@ class Driver(fr.Resource):
 
         db.session.delete(driver)
         db.session.commit()
+        invalidate_cache()
 
         data = makeData(driver, "Resource succesfully deleted")
         return data
@@ -233,6 +261,7 @@ class Driver(fr.Resource):
 
 class Race(fr.Resource):
 
+    @cache_list
     def get(self, id = None):
 
         if not id:
@@ -264,6 +293,7 @@ class RaceResults(fr.Resource):
 
 class Result(fr.Resource):
 
+    @cache_list
     def get(self, id = None):
 
         if not id:
@@ -282,6 +312,7 @@ class Result(fr.Resource):
 
         db.session.add(result)
         db.session.commit()
+        invalidate_cache()
 
         data = makeData(result, "Resource succesfully created")
         return data, 201
@@ -296,6 +327,7 @@ class Result(fr.Resource):
             setattr(result, column, value)
 
         db.session.commit()
+        invalidate_cache()
 
         data = makeData(result, "Resource succesfully updated")
 
@@ -307,6 +339,53 @@ class Result(fr.Resource):
 
         db.session.delete(result)
         db.session.commit()
+        invalidate_cache()
 
         data = makeData(result, "Resource succesfully deleted")
         return data
+
+
+class Standings(fr.Resource):
+    """Championship standings for a season, computed from Result rows on
+    every request rather than stored — there's no separate standings
+    table to keep in sync as results come in.
+    """
+
+    @cache_list
+    def get(self, season):
+
+        rows = (
+            db.session.query(
+                driverModel.Driver,
+                func.sum(resultModel.Result.points).label("points"),
+            )
+            .join(resultModel.Result, resultModel.Result.driver_id == driverModel.Driver.id)
+            .join(raceModel.Race, raceModel.Race.id == resultModel.Result.race_id)
+            .filter(raceModel.Race.season == season)
+            .group_by(driverModel.Driver.id)
+            .order_by(func.sum(resultModel.Result.points).desc())
+            .all()
+        )
+
+        standings = []
+        previous_points = None
+        rank = 0
+        for index, (driver, points) in enumerate(rows, start=1):
+            if points != previous_points:
+                rank = index
+            previous_points = points
+
+            team = driver.team
+            standings.append(
+                {
+                    "rank": rank,
+                    "points": points,
+                    "driver": {
+                        "id": driver.id,
+                        "name": driver.name,
+                        "team": {"id": team.id, "name": team.name} if team else None,
+                    },
+                }
+            )
+
+        return {"season": season, "data": standings}

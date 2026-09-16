@@ -5,6 +5,8 @@ basedir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 
 class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    CACHE_TYPE = "SimpleCache"
+    CACHE_DEFAULT_TIMEOUT = 30
 
 
 class DevelopmentConfig(Config):
@@ -14,6 +16,7 @@ class DevelopmentConfig(Config):
 class TestingConfig(Config):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = "sqlite://"
+    CACHE_TYPE = "NullCache"
 
 
 def _normalize_database_url(url):
