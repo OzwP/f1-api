@@ -151,37 +151,37 @@ Docker Compose, `testing` under pytest).
 
 ## Deploying
 
-The app is deploy-ready via its `Dockerfile` on either Render or Fly.io,
-both of which offer a free web service + Postgres pairing. Neither step
-below has been run against a live account — do it from your own login,
-then update this section with the live URL.
+The deployment target is AWS: ECS Fargate running the `Dockerfile` image,
+an RDS Postgres instance, and a CloudFront distribution in front of it
+that requires a **signed URL or signed cookie** on every request —
+CloudFront rejects unsigned requests before they ever reach the app. This
+is access control, not just a CDN: there's no public, unauthenticated way
+to reach the API.
 
-### Render
-
-`render.yaml` at the repo root is a Blueprint: it provisions a free
-Postgres database (`f1-api-db`) and a Docker web service (`f1-api`) wired
-together via `DATABASE_URL`, and sets `FLASK_CONFIG=production`.
-
-1. On [Render](https://render.com), New → Blueprint, point it at this repo
-2. Render reads `render.yaml`, provisions the database and web service, and
-   builds the `Dockerfile`
-3. The container's entrypoint runs `flask db upgrade` on boot, so the
-   schema is created automatically on first deploy
-
-### Fly.io
-
-`fly.toml` is a starting config (`app` name is a placeholder — Fly
-generates names during `fly launch`).
-
-``` bash
-fly launch --no-deploy          # reconciles fly.toml, reserves an app name
-fly postgres create              # free-tier Postgres cluster
-fly postgres attach <db-app-name>  # wires DATABASE_URL into secrets
-fly deploy
+```
+viewer --(signed URL/cookie required)--> CloudFront --(shared-secret header,
+    IP-range-restricted)--> ALB --> ECS Fargate (this app) --> RDS Postgres
 ```
 
-`fly postgres attach` sets `DATABASE_URL` as a Fly secret automatically;
-`FLASK_CONFIG=production` is already set via `fly.toml`.
+All of the infrastructure lives in `terraform/aws/` (see that directory's
+README for the full walkthrough) and hasn't been applied against a live
+AWS account from this repo — do that from your own credentials, then come
+back and fill in the live CloudFront domain here.
+
+Quick summary:
+
+1. `cd terraform/aws && terraform init && terraform apply` — provisions
+   the VPC, ECR repo, RDS instance, ECS service, ALB, and CloudFront
+   distribution (see that directory's README for the one-time RSA keypair
+   setup CloudFront signing needs first)
+2. Build and push the app image to the ECR repo Terraform created, then
+   force a new ECS deployment — either manually (commands in
+   `terraform/aws/README.md`) or via `.github/workflows/deploy-aws.yml`
+   (`workflow_dispatch`, once its AWS_ROLE_ARN/ECR_REPOSITORY/etc. repo
+   variables are set)
+3. Generate a signed URL or signed cookies with
+   `scripts/sign_cloudfront_url.py` before hitting the CloudFront domain
+   — an unsigned request gets a 403 from CloudFront directly
 
 ## Contributing
 

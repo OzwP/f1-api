@@ -143,16 +143,22 @@ for a "real" deployed service; Docker networking between containers.
 
 ## Phase 7 — Deploy
 
-*(Prepped, not executed — deploying needs a live Render/Fly.io account and
-credentials this session doesn't have. `render.yaml` and `fly.toml` are
-ready to go; the remaining two items are yours to do from your own
-login.)*
+*(Target changed mid-build from Render/Fly.io to AWS: ECS Fargate + RDS
+Postgres behind a CloudFront distribution that requires a signed
+URL/cookie on every request — see the README's "Deploying" section and
+`terraform/aws/`. Infra-as-code is prepped, not applied: this session
+doesn't have AWS credentials, and `terraform init` also couldn't reach
+the provider registry to fully validate it — see `terraform/aws/README.md`
+and the PR that added it for exactly what was and wasn't verified. The
+remaining items are yours to do from your own AWS account.)*
 
-- [x] Pick Render or Fly.io (both have a free Postgres + web service pairing)
-      — both are prepped, see `render.yaml` / `fly.toml` and the README's
-      "Deploying" section
-- [ ] Deploy, confirm the live URL responds
-- [ ] Update the README with the live URL and example requests
+- [x] Pick a deploy target and prep its infrastructure — AWS (ECS Fargate +
+      RDS + CloudFront), see `terraform/aws/`
+- [ ] `terraform apply`, build + push the image, deploy, confirm the
+      CloudFront URL responds (with a signed URL/cookie —
+      `scripts/sign_cloudfront_url.py`)
+- [ ] Update the README with the live CloudFront domain and example
+      signed requests
 
 ---
 
