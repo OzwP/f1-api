@@ -16,8 +16,18 @@ class TestingConfig(Config):
     SQLALCHEMY_DATABASE_URI = "sqlite://"
 
 
+def _normalize_database_url(url):
+    # Render/Heroku-style connection strings use the "postgres://" scheme,
+    # which SQLAlchemy 2.0 no longer accepts.
+    if url.startswith("postgres://"):
+        return url.replace("postgres://", "postgresql+psycopg2://", 1)
+    return url
+
+
 class ProductionConfig(Config):
-    SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL", "sqlite:///" + os.path.join(basedir, "data.db"))
+    SQLALCHEMY_DATABASE_URI = _normalize_database_url(
+        os.environ.get("DATABASE_URL", "sqlite:///" + os.path.join(basedir, "data.db"))
+    )
 
 
 config = {
