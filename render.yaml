@@ -1,0 +1,19 @@
+databases:
+  - name: f1-api-db
+    plan: free
+    postgresMajorVersion: "16"
+
+services:
+  - type: web
+    name: f1-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /
+    envVars:
+      - key: FLASK_CONFIG
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: f1-api-db
+          property: connectionString
