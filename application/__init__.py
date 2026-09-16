@@ -1,5 +1,6 @@
-from flask import Flask
+from flask import Flask, jsonify
 from flask_restful import Api
+from flask_swagger_ui import get_swaggerui_blueprint
 
 from .config import config
 from .extensions import cache, db, migrate
@@ -27,5 +28,15 @@ def create_app(config_name="default"):
     @app.get("/")
     def index():
         return "Hello World!"
+
+    from .docs import build_spec
+
+    @app.get("/openapi.json")
+    def openapi_spec():
+        return jsonify(build_spec().to_dict())
+
+    app.register_blueprint(
+        get_swaggerui_blueprint("/docs", "/openapi.json", config={"app_name": "F1 API"})
+    )
 
     return app
