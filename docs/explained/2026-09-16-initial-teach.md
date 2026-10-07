@@ -1,3 +1,13 @@
+---
+title: Lesson 1 — Initial Teaching Pass
+tags:
+  - type/teaching-addendum
+  - project/f1-api
+date: 2026-09-16
+covers-commit: 6c42e07
+next: 2026-10-07-depth-and-obsidian-pass
+---
+
 # Lesson 1 — Initial Teaching Pass
 
 **Date:** 2026-09-16
@@ -8,7 +18,7 @@
 
 ## What this run covered
 
-This is the first pass, so [`EXPLAINED.md`](../EXPLAINED.md) was written from scratch: the whole project, from what an HTTP request is through to why CloudFront is being used as an authentication layer. Nothing had changed since a previous run, because there was no previous run.
+This is the first pass, so [[EXPLAINED|`EXPLAINED.md`]] was written from scratch: the whole project, from what an HTTP request is through to why CloudFront is being used as an authentication layer. Nothing had changed since a previous run, because there was no previous run.
 
 Rather than restate that document, this lesson records the part of the run that produced **new knowledge** — things that were not derivable by reading the code, and that the next run should not have to rediscover. The project's own `NOTES.md` catalogued what was wrong with the 2022 prototype before the rebuild began; this is the equivalent inventory for the code as it stands *after* eight phases of rebuilding.
 
@@ -45,7 +55,7 @@ Those 55 warnings are worth a glance rather than a shrug. Most are `LegacyAPIWar
 
 ## Eleven findings, and how each was established
 
-All eleven are written up in full in [Part 15 of the master doc](../EXPLAINED.md#part-15--real-bugs-and-sharp-edges-verified-not-guessed), with transcripts, root causes, and fixes. Summarised here with the *evidence* for each, because the evidence is what makes them worth trusting:
+All eleven are written up in full in [[EXPLAINED#Part 15 — Verified Findings|Part 15 of the master doc]], with transcripts, root causes, and fixes. Summarised here with the *evidence* for each, because the evidence is what makes them worth trusting:
 
 | # | Finding | How it was established |
 |---|---------|------------------------|
@@ -84,7 +94,7 @@ driver = result.driver
 team = driver.team
 ```
 
-The fix is about five lines of `joinedload`. The more durable fix is a test that asserts the query count, so the next person to touch that function finds out immediately — that's [Exercise 4](../EXPLAINED.md#exercise-4--kill-the-n1-in-racesidresults-).
+The fix is about five lines of `joinedload`. The more durable fix is a test that asserts the query count, so the next person to touch that function finds out immediately — that's [[EXPLAINED#Exercise 4 — Kill the N+1 and index the joins|Exercise 4]].
 
 ---
 
@@ -131,7 +141,8 @@ POST /drivers {"name":"George Russell"}               →  201
 
 The missing `rollback()` is real, but it is **contained** — because Flask-SQLAlchemy scopes the session to the application context, and Flask pushes a fresh one per request. The broken session is discarded before the next request starts. That's containment rather than correctness, and it holds only while no single handler does two units of work; add a second `commit()` to any handler and it becomes a live bug.
 
-> **Transferable lesson:** when your test harness and the real runtime disagree, suspect the harness. My probe shared a session across requests in a way no real server does, and it manufactured a failure that doesn't exist — while accidentally proving something true about the code. Reproduce a suspected bug in isolation before writing it up, and when a passing test contradicts your theory, the test is usually right.
+> [!tip] Transferable lesson
+> When your test harness and the real runtime disagree, suspect the harness. My probe shared a session across requests in a way no real server does, and it manufactured a failure that doesn't exist — while accidentally proving something true about the code. Reproduce a suspected bug in isolation before writing it up, and when a passing test contradicts your theory, the test is usually right.
 
 ---
 
@@ -143,18 +154,27 @@ Two patterns showed up repeatedly and are worth naming, because they'll predict 
 
 **Untested code and broken code are the same code.** `Motor` and `Team` have no `PATCH` or `DELETE` tests. They are also the two resources with the mass-assignment hole. This is not a coincidence in either direction: writing the test would have exposed the bug, and the bug survived because no test described the behavior.
 
-**And unverified is not the same as working.** Phases 6 and 7 are candidly documented as never having been executed — `docker compose up` was blocked by a network policy, and `terraform apply` has never run against a live AWS account. That candor is genuinely good practice, and it means everything in [Part 14](../EXPLAINED.md#part-14--docker-postgres-and-deployment) about the Postgres and AWS path describes configuration that has been *written* and *reviewed*, not configuration that has been *run*. The next session should resist treating it as proven.
+**And unverified is not the same as working.** Phases 6 and 7 are candidly documented as never having been executed — `docker compose up` was blocked by a network policy, and `terraform apply` has never run against a live AWS account. That candor is genuinely good practice, and it means everything in [[EXPLAINED#Part 14 — Docker, Postgres, and Deployment|Part 14]] about the Postgres and AWS path describes configuration that has been *written* and *reviewed*, not configuration that has been *run*. The next session should resist treating it as proven.
 
 ---
 
 ## What was updated in the master doc
 
-Everything — this was the first run, so [`EXPLAINED.md`](../EXPLAINED.md) was created in full (18 parts plus an appendix). Notable structural choices the next run should preserve or deliberately change:
+Everything — this was the first run, so [[EXPLAINED|`EXPLAINED.md`]] was created in full (18 parts plus an appendix). Notable structural choices the next run should preserve or deliberately change:
 
-- **[Part 8](../EXPLAINED.md#part-8--one-request-end-to-end)** traces `GET /standings/2024` through all nineteen steps and is flagged as the read-this-first section. Its step 13 is where the N+1 becomes visible in the narrative.
-- **[Part 15](../EXPLAINED.md#part-15--real-bugs-and-sharp-edges-verified-not-guessed)** holds all eleven findings with transcripts. Each entry has a root cause and a fix, so it doubles as a work queue.
-- **[Part 17](../EXPLAINED.md#part-17--known-weaknesses)** ranks the defects by fix priority and separates *verified defects* from *coverage gaps* from *missing-for-production* items — three different kinds of debt that shouldn't share a list.
-- **[Part 18](../EXPLAINED.md#part-18--exercises)** has eleven exercises with hints. Exercises 3 and 4 are starred: closing the mass-assignment hole and killing the N+1.
+- **[[EXPLAINED#Part 8 — One Request, End to End|Part 8]]** traces `GET /standings/2024` through all nineteen steps and is flagged as the read-this-first section. Its step 13 is where the N+1 becomes visible in the narrative.
+- **[[EXPLAINED#Part 15 — Verified Findings|Part 15]]** holds all eleven findings with transcripts. Each entry has a root cause and a fix, so it doubles as a work queue.
+- **[[EXPLAINED#Part 17 — Known Weaknesses|Part 17]]** ranks the defects by fix priority and separates *verified defects* from *coverage gaps* from *missing-for-production* items — three different kinds of debt that shouldn't share a list.
+- **[[EXPLAINED#Part 18 — Exercises|Part 18]]** has eleven exercises with hints. Exercises 3 and 4 are starred: closing the mass-assignment hole and killing the N+1.
 - The SQL in Parts 7 and 8 was **dumped from the running application**, not transcribed by hand, so it's exactly what SQLAlchemy compiles.
 
 If the next run finds these findings fixed, the corresponding Part 15 entries should move to a short "previously fixed" note rather than being deleted — the reasoning behind a fix is worth as much as the fix.
+
+---
+
+> [!info] Superseded in part
+> A later pass, [[2026-10-07-depth-and-obsidian-pass]], went back over this same
+> commit and found two further defects — no index on any foreign key, and silent
+> float truncation in integer fields — and established the exact mechanism behind
+> the DELETE correction recorded above. Nothing here was retracted; the master doc
+> now carries thirteen findings rather than eleven.
