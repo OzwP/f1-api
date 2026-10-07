@@ -135,7 +135,15 @@ A constraint fell out of this: **headings can no longer contain backticks**, bec
 
 **File references are inline code, not links.** `application/routes/routes.py:129` rather than a relative markdown link. This is the deliberate tradeoff: a relative link to a `.py` file resolves differently depending on whether the vault root is the repository root, the `docs/` folder, or somewhere else entirely, and in most of those cases it is simply broken. Inline code is correct in every reader, at the cost of not being clickable in any of them. If the vault is the repository root and clickable source links matter more, that decision is a find-and-replace away.
 
-The PDF pipeline was taught to understand all of this — wikilinks, callouts, frontmatter — so `EXPLAINED.pdf` still renders, with callouts coloured by type.
+The PDF pipeline was taught to understand all of this — wikilinks, callouts, frontmatter — so `EXPLAINED.pdf` rendered correctly through the conversion, with callouts coloured by type.
+
+> [!info] Retired later the same day
+> The PDF existed for portability — something to read away from the editor. Moving into a
+> vault makes that redundant, since Obsidian syncs and reads on every device already. So the
+> PDF step was dropped from the skill and `docs/EXPLAINED.pdf` deleted, rather than left to
+> rot as an unmaintained copy that drifts from the Markdown — the exact failure this document
+> describes in [[EXPLAINED#The choice of tooling, and what it cost]]. Markdown is now the only
+> output. The deleted file is recoverable from git history if it is ever wanted back.
 
 ---
 
